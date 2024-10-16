@@ -19,6 +19,52 @@ app.config['MYSQL_DB'] = 'LOGIN'
 
 mysql = MySQL(app)
 
+def save_answers_to_database(q_id, answer):
+    try:
+        user_id = session.get('id')  
+        print(user_id)
+        cursor = mysql.connection.cursor()
+        if user_id == None:
+            user_id = 0
+        cursor.execute('INSERT INTO sessions (uid, session) \
+                        SELECT %s, %s \
+                        WHERE NOT EXISTS (SELECT * FROM sessions WHERE uid = %s);', (user_id, 1, user_id, ))
+        mysql.connection.commit()
+        session_number = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT session FROM sessions where uid = %s', (user_id, ))
+        session_number = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('INSERT INTO result (session, uid, qid, answer) VALUES (%s, %s, %s, %s)', (session_number, user_id, q_id, answer, ))
+        mysql.connection.commit()
+        cursor.close()
+    except Exception as e:
+        app.logger.error(f"Failed to save answers to database: {e}")
+
+
+def get_saved_answers_from_database_form(session_num):
+    try:
+        cursor = mysql.connection.cursor()
+        user_id = session.get('id')
+        if user_id == None:
+            user_id = 0
+        cursor.execute('SELECT DISTINCT questions.question, text \
+                       FROM questions JOIN result ON questions.qid = result.qid \
+                       JOIN answers ON result.answer = answers.aid\
+                       WHERE result.uid = %s AND result.qid > 0 AND result.session = %s', (user_id, session_num, ))
+        saved_answers = cursor.fetchall()
+        #if user_id == 0:
+           # cursor.execute('DELETE FROM result WHERE uid = 0')
+           # mysql.connection.commit()
+        cursor.close() 
+        return saved_answers
+    except Exception as e:
+        app.logger.error(f"Failed to get saved answers from database: {e}")
+        return []
+
+
 @app.route('/')
 def home():
     session['prev_page'] = 'home'
