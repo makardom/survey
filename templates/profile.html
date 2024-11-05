@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <title>Банкрот-эксперт</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/form.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/c3770d0828.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <header class="header__group">
+      <div class="container">
+          <div class="header__inner">
+              <div class="logo">
+                <a class="logo_link" href="../">Банкрот-эксперт</a>
+              </div>              
+              <nav class="nav">
+                <a class="link" href="/need">Нужно ли банкротиться?</a>
+                <a class="link" href="/judicial_bankruptcy">Судебное банкротство</a>
+                <a class="link" href="/out-of-court_bankruptcy">Внесудебное банкротство</a>
+              </nav>
+              <div>
+                <form action="/logout" method="post">
+                  <input class="link_auto" type="submit" value="Выйти">
+                </form>
+              </div>
+          </div>
+      </div>
+  </header>
+    <section class="section">
+      <div class="container__section">
+        <h2>Формы заявлений и списки необходимых документов</h2>
+        <ul>
+          <li><a href="/sample_declaration_court" target="_blank">Заявление о признании гражданина банкротом в судебном порядке 
+          </a></li>
+          <li><a href="/sample_declaration_out_of_court" target="_blank">Заявление о признании гражданина банкротом во внесудебном порядке
+          </a></li>
+          <li><a href="/creditors" target="_blank">Список кредиторов и должников гражданина</a></li>
+          <li><a href="/refs_out_of_court" target="_blank">Список справок, подтверждающих наличие оснований для обращения в МФЦ</a></li>
+      </ul>
+      </div>
+      <div class="container__section">
+        <h2>Результаты анкет</h2><br>
+        <div class="container">
+          <div class="wedo"> 
+              {% for num, qa, res in session_data %}
+              <button class="accordion__header">{{num}}. {{res}}</button>
+              <div class="accordion__content">
+                {% for q in qa %}
+                <form class='form' method="POST">
+                  {{q.0}} {{q.1}}
+                </form>
+                {% endfor %}
+              </div>
+              {% endfor %}    
+          </div> 
+        </div>  
+      </div> 
+    </section>
+    <footer class="small__section" id="contacts">
+      <div class="container">
+          <div class="small__inner">
+              <div class="small__text">
+                  <a class="logo_link" href="#" data-scroll="#main"><h2>Банкрот-эксперт</h2></a>
+              </div>
+          </div>
+         
+          <div class="small__text__form">Вся информация на сайте носит справочный характер и актуальна на 16.04.2024</div>
+      </div>
+  </footer>
+  <script>
+    var accordions = document.getElementsByClassName("accordion__header");
+
+    for (var i = 0; i < accordions.length; i++) {
+        accordions[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var accordion__content = this.nextElementSibling;
+            if (accordion__content.style.maxHeight) {
+                accordion__content.style.maxHeight = null;
+                accordion__content.style.border = "none";
+                } else {
+                accordion__content.style.maxHeight = accordion__content.scrollHeight + "px";
+                accordion__content.style.border = "2px solid #1b1818";
+            }
+            if (accordion__content.classList.contains("accordion__content")) {
+                accordion__content.classList.toggle("active");
+          }
+        });
+    }
+  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js">
+  </script>
+  <script src="../static/js/app.js"></script>
+  </body>
+</html>
+
+
+
+
+

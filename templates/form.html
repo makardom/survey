@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <title>Банкрот-эксперт</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/css/form.css">
+        <link rel="stylesheet" href="../static/css/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+        <script src="https://kit.fontawesome.com/c3770d0828.js" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <header class="header__group">
+            <div class="container">
+                <div class="header__inner">
+                    <div class="logo">
+                        <a class="logo_link" href="../" target="_blank">Банкрот-эксперт</a>
+                    </div>
+                    <nav class="nav">
+                        <a class="link" href="/need" target="_blank">Нужно ли банкротиться?</a>
+                        <a class="link" href="/judicial_bankruptcy" target="_blank">Судебное банкротство</a>
+                        <a class="link" href="/out-of-court_bankruptcy" target="_blank">Внесудебное банкротство</a>
+                    </nav>
+                    <div>
+                      {% if 'loggedin' in session %}
+                        <a class="link_auto" href="/profile" target="_blank">Профиль</a>
+                        <form action="/logout" method="post">    
+                            <input class="link_auto" type="submit" value="Выйти">
+                        </form>
+                        {% else %}
+                        <a class="link_auto" href="/sign-in" target="_blank">Войти</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="section">
+            <div class="container__section">
+                <div class="section__header">
+                    <h2 class="section__title">Анкета</h2>
+                </div>
+                <div class="card__group">
+                    {% if question.id == 1 %}
+                    <p id="text">Банкротство - вынужденная мера! Если у Вас нет другого выхода, то после заполнения анкеты Вы сможете узнать, какое банкротство подойдет именно Вам. 
+                        {% if 'loggedin' not in session %}
+                        Чтобы результат анкеты был сохранен, необходимо <a href="/sign-in" target="_blank">авторизироваться.</a>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div><!--/.card-->
+                <form class='form' method="POST">
+                    {% if question.id > 0 %}
+                        <h1 class="question" id="question{{ question.id }}">
+                            {{ question.text }}
+                            {% if question.comment %}
+                                <img src="{{ url_for('static', filename='img/comment.png') }}" data-toggle="popover" data-html-content="{{ question.comment|safe }}" alt="comment" style="width:20px;height:20px;">
+                            {% endif %}
+                        </h1>     
+                        {% if question.id != 9 %}     
+                            <div class="answer-group">
+                                <input class="answer" type="radio" id="yes" name="next" value="{{ question.next.yes + 100 }}">
+                                <label for="yes">Да</label>
+                            </div>
+                        {% endif %}
+                            <div class="answer-group">
+                                <input class="answer" type="radio" id="no" name="next" value="{{ question.next.no }}">
+                                <label for="no">Нет</label>
+                            </div>
+                        {% if question.id == 9 %}
+                            <div class="answer-group">
+                                <input class="answer" type="radio" id="end" name="next" value="{{ question.next.end }}">
+                                <label for="end">Производство окончено в связи с отсутствием имущества</label>
+                            </div>
+                            <div class="answer-group">
+                                <input class="answer" type="radio" id="again" name="next" value="{{ question.next.again }}">
+                                <label for="again">Производство окончено, но после этого возбуждено новое</label>
+                            </div>
+                        {% endif %}
+                            <div class="buttons">
+                                <input class="button" type="submit" value="Далее">
+                                {% if question.id != 1 %}
+                                <a class="button" href="{{ url_for('back') }}">Назад</a>
+                                {% endif %}
+                            </div>
+                    {% else %}
+                        {% if question.id == -1%}
+                            <h1 class="question" id="question{{ question.id }}">Банкротство вам не подходит. Почему?</h1>
+                            <div class="card__group"><div> {{res.text|safe}}</div></div>
+                        {% elif  question.id == -3 %}
+                            <h1 class="question" id="question{{ question.id }}">У Вас есть возможность пройти процедуру внесудебного банкротства</h1>
+                            <div class="card__group"> <div>{{ res.text|safe }}</div></div>
+                            <div class="card__group"> <div>Подробнее про процедуру внесудебного банкротства Вы можете узнать по <a href ="/out-of-court_bankruptcy" target="_blank"> ссылке</a>.</div></div>
+                        {% elif  question.id == -2 %}
+                            {%if answer_17 %}
+                            <h1 class="question" id="question{{ question.id }}">Вы обязаны пройти процедуру судебного банкротства</h1>
+                            {% else %}
+                            <h1 class="question" id="question{{ question.id }}">У Вас есть возможность пройти процедуру судебного банкротства</h1>
+                            {% endif %}
+                            <div class="card__group"> <div>{{ res|safe }}</div></div>
+                            <div class="card__group"> <div>Подробнее про процедуру судебного банкротства Вы можете узнать по <a href ="/judicial_bankruptcy" target="_blank"> ссылке</a>.</div></div>
+                        {% endif %}
+                        <div>
+                            {% if question.id != -1%}
+                                {% if 'loggedin' in session %}
+                                    <p>Вы можете скачать необходимые документы, а также посмотреть результаты этой и ранее пройденных анкет в <a href="/profile" target="_blank">профиле.</a></p>
+                                {% else %}
+                                    <p><a href="/sign-in" target="_blank">Авторизируйтесь</a>, чтобы получить возможность скачать необходимые документы, а также посмотреть результаты анкет в профиле.</p>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <br>
+                        <a class="button2" href="{{ url_for('back') }}">Назад</a>
+                        </form>
+                        <!-- {{answers}} -->
+                    </form>
+                    {% endif %}
+                    {% if question.id < 0 %}
+                            <div class="container_for_answer">
+                                <div class="wedo"> 
+                                    <button class="accordion__header">Ваши ответы</button>
+                                    <div class="accordion__content">
+                                        {% for q in saved %}
+                                        <form class='form' method="POST">
+                                        {{q.0}} {{q.1}}
+                                        </form>
+                                        {% endfor %}
+                                    </div>
+                                </div> 
+                            </div>
+                    {% endif %}
+            </div>
+        </section>
+
+        <footer class="small__section" id="contacts">
+            <div class="container">
+                <div class="small__inner">
+                    <div class="small__text">                     
+                        <a class="logo_link" href="../" data-scroll="#main"><h2>Банкрот-эксперт</h2></a>
+                    </div>
+                </div>
+                <div class="small__text__form">Вся информация на сайте носит справочный характер и актуальна на 16.04.2024</div>
+            </div>
+        </footer> <!--MAKED-->
+    </body>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="popover"]').popover({
+                html: true,
+                content: function() {
+                    return $(this).attr('data-html-content');
+                },
+                offset: '45, 0'
+            }); 
+            
+        });
+    </script>
+    <script>
+        var accordions = document.getElementsByClassName("accordion__header");
+
+        for (var i = 0; i < accordions.length; i++) {
+            accordions[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var accordion__content = this.nextElementSibling;
+                if (accordion__content.style.maxHeight) {
+                    accordion__content.style.maxHeight = null;
+                    accordion__content.style.border = "none";
+                    } else {
+                    accordion__content.style.maxHeight = accordion__content.scrollHeight + "px";
+                    accordion__content.style.border = "2px solid #1b1818";
+                }
+                if (accordion__content.classList.contains("accordion__content")) {
+                    accordion__content.classList.toggle("active");
+}
+            });
+        }
+    </script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"> -->
+    </script>
+    <script src="../static/js/app.js"></script>
+</html>
