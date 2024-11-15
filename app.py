@@ -19,6 +19,94 @@ app.config['MYSQL_DB'] = 'LOGIN'
 
 mysql = MySQL(app)
 
+with open('questions.json', 'r', encoding='utf8') as f:
+    data = json.load(f)
+questions = {q['id']: q for q in data['Questions']}
+
+with open('results.json', 'r', encoding='utf8') as f:
+    data = json.load(f)
+results = {r['id']: r for r in data['Results']}
+
+current_datetime = ''
+@app.route('/form', methods=['GET', 'POST'])
+def form():
+    if 'history' not in session:
+        session['history'] = []
+    if 'answers' not in session:
+        session['answers'] = {}
+    session['prev_page'] = 'form'
+    if request.method == 'POST':
+        if request.form.get('next'):
+            next_id = int(request.form.get('next'))
+            answer = 'yes' if next_id - 100 == int(questions[int(session['history'][-1])]['next'].get('yes', 0)) else 'no'
+            if 'end' in questions[int(session['history'][-1])]['next'] and next_id == int(questions[int(session['history'][-1])]['next']['end']):
+                answer = 'end'
+            if 'again' in questions[int(session['history'][-1])]['next'] and next_id == int(questions[int(session['history'][-1])]['next']['again']):
+                answer = 'again'
+            if next_id > 90:
+                next_id -= 100
+            session['answers'][str(session['history'][-1])] = answer
+            save_answers_to_database(str(session['history'][-1]), answer)
+            session['history'].append(str(next_id))
+            session.modified = True
+
+    else:
+        question_id = int(request.args.get('question_id', 1))
+        if str(question_id) not in session['history']:
+            session['history'].append(str(question_id))
+        session.modified = True
+
+    question_id = int(session['history'][-1])
+    question = questions[question_id]
+    if question_id == 1:
+        current_datetime = datetime.now().strftime('%d-%m-%Y %H:%M')
+        print(current_datetime)
+        cursor = mysql.connection.cursor()
+        user_id = session.get('id')  
+        if user_id == None:
+            user_id = 0
+            cursor.execute('DELETE FROM result WHERE uid = 0')
+            mysql.connection.commit()
+        cursor.execute('INSERT INTO sessions (uid, session) \
+                        SELECT %s, %s \
+                        WHERE NOT EXISTS (SELECT * FROM sessions WHERE uid = %s);', (user_id, 0, user_id, ))
+        cursor.execute('UPDATE sessions SET session = session + 1 \
+                       WHERE uid = %s', (user_id,))
+        mysql.connection.commit()
+        cursor.close()
+    elif question_id < 0:
+        print(session['history'])
+        user_id = session.get('id') 
+        if user_id == None:
+            user_id = 0 
+        if question_id == -2:
+            res = html_for_court(session['answers'])
+        else:
+            res = results[int(session['history'][-2])]
+        cursor = mysql.connection.cursor()
+        #print(user_id)
+        save_answers_to_database(question_id, 'NULL')
+        cursor.execute('SELECT session FROM sessions WHERE uid = %s', (user_id,))
+        session_num = cursor.fetchone()
+        print(session_num)
+        current_datetime = datetime.now().strftime('%d-%m-%Y %H:%M')
+        cursor.execute('UPDATE result SET date = %s \
+                       WHERE session = %s', (current_datetime, session_num[0],))
+        cursor.execute('DELETE FROM result WHERE id NOT IN (\
+                        SELECT MAX(id)\
+                        FROM (select * from result) as res \
+                        GROUP BY qid, session)')
+        mysql.connection.commit()
+        cursor.close()
+        saved = get_saved_answers_from_database_form(session_num[0])
+        #print(saved)
+        if ('17' in session['answers'] and session['answers']['17'] == 'yes' or '18' in session['answers'] and session['answers']['18'] == 'no') and '3' in session['answers'] and session['answers']['3'] == 'yes':
+            answer_17 = False
+        else:
+             answer_17 = True
+        return render_template('form.html', question=question, res=res, saved=saved, answer_17=answer_17, answers=session['answers'])
+    return render_template('form.html', question=question)
+
 def save_answers_to_database(q_id, answer):
     try:
         user_id = session.get('id')  
