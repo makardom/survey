@@ -246,7 +246,7 @@ def profile():
                 res_array.append(get_saved_answers_from_database(i)[1][0][0])
                 date_array.append(get_saved_answers_from_database(i)[2][0][0])
         return render_template('profile.html', session_data=(zip(date_array,saved,res_array)))  # Личный кабинет с прошлыми результатами анкеты  # Личный кабинет с прошлыми результатами анкеты
-    return render_template('profile.html')
+    return render_template('profile.html', user_id = session.get('id'))
 
 def get_saved_answers_from_database(session_num):
     try:
