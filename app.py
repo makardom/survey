@@ -220,6 +220,55 @@ def logout():
     session.pop('loggedin', None)
     return redirect(url_for(session['prev_page']))
 
+@app.route('/back', methods=['GET'])
+def back():
+    if len(session['history']) > 1:
+        session['history'].pop()
+        session.modified = True
+    return redirect(url_for('form', question_id=session['history'][-1]))
+
+@app.route('/profile')
+def profile():
+    saved = []
+    cursor = mysql.connection.cursor()
+    user_id = session.get('id')
+    cursor.execute('SELECT session\
+                    FROM sessions WHERE uid = %s', (user_id,  ))
+    num_of_sessions = cursor.fetchall()
+    print(num_of_sessions)
+    cursor.close() 
+    date_array = []
+    res_array = []
+    if num_of_sessions != ():
+        for i in range(1, num_of_sessions[0][0] + 1):
+            if get_saved_answers_from_database(i)[0] != () and get_saved_answers_from_database(i)[1] != ():
+                saved.append(get_saved_answers_from_database(i)[0])
+                res_array.append(get_saved_answers_from_database(i)[1][0][0])
+                date_array.append(get_saved_answers_from_database(i)[2][0][0])
+        return render_template('profile.html', session_data=(zip(date_array,saved,res_array)))  # Личный кабинет с прошлыми результатами анкеты  # Личный кабинет с прошлыми результатами анкеты
+    return render_template('profile.html')
+
+def get_saved_answers_from_database(session_num):
+    try:
+        user_id = session.get('id')
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT DISTINCT questions.question, text \
+                       FROM questions JOIN result ON questions.qid = result.qid \
+                       JOIN answers ON result.answer = answers.aid\
+                       WHERE result.uid = %s AND result.session = %s', (user_id, session_num, ))
+        saved_answers = cursor.fetchall()
+        cursor.execute('SELECT DISTINCT questions.question \
+                       FROM questions JOIN result ON questions.qid = result.qid \
+                       WHERE result.uid = %s AND result.qid < 0 AND result.session = %s', (user_id, session_num, ))
+        result = cursor.fetchall()
+        cursor.execute('SELECT DISTINCT date FROM result WHERE uid = %s AND session = %s', (user_id, session_num, ))
+        date = cursor.fetchall()
+        cursor.close() 
+        return [saved_answers,result,date]
+    except Exception as e:
+        app.logger.error(f"Failed to get saved answers from database: {e}")
+        return []
+
 if __name__ == "__main__":
     #app.run(debug=True)
     app.run(debug=True, port=80, host='0.0.0.0')
