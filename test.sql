@@ -66,5 +66,5 @@ CREATE TABLE IF NOT EXISTS `sessions` (
     `session` int(11)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `form` (`username`, `password`, `isAdmin`) 
-VALUES ('admin@gmail.com', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '1');
+INSERT INTO `form` (`id`,`username`, `password`, `isAdmin`) 
+VALUES (1, 'admin@gmail.com', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', true);
