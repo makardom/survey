@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `form` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `username` varchar(50) NOT NULL,
     `password` varchar(255) NOT NULL,
+    `isAdmin` boolean NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -65,3 +66,5 @@ CREATE TABLE IF NOT EXISTS `sessions` (
     `session` int(11)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO `form` (`username`, `password`, `isAdmin`) 
+VALUES ('admin@gmail.com', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '1');
