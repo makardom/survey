@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -182,6 +182,10 @@ def sign_in():
             session['loggedin'] = True
             session['id'] = account['id']
             session['username'] = account['username']
+            if account['isAdmin'] == 1:
+                session['isAdmin'] = True
+            else:
+                session['isAdmin'] = False
             return redirect(url_for(session['prev_page']))
         else:
             msg = 'Неверный логин/пароль!'
@@ -205,8 +209,8 @@ def sign_up():
         elif not username or not hashed_password:
             msg = 'Поля должны быть заполнены!'
         else:
-            cursor.execute('INSERT INTO form (`username`, `password`) VALUES (%s, %s)',
-                           (username, hashed_password,))
+            cursor.execute('INSERT INTO form (`username`, `password`, `isAdmin`) VALUES (%s, %s, %s)',
+                           (username, hashed_password, 0))
             mysql.connection.commit()
             msg = 'Регистрация прошла успешно!'
             return redirect(url_for('sign_in'))
@@ -218,6 +222,7 @@ def sign_up():
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop('loggedin', None)
+    session.pop('isAdmin', None)
     return redirect(url_for(session['prev_page']))
 
 @app.route('/back', methods=['GET'])
@@ -268,6 +273,20 @@ def get_saved_answers_from_database(session_num):
     except Exception as e:
         app.logger.error(f"Failed to get saved answers from database: {e}")
         return []
+    
+@app.route('/admin')
+def admin():
+    # Проверяем, есть ли у пользователя доступ к админской странице
+    if 'isAdmin' in session and session['isAdmin'] == 1:
+        session['prev_page'] = 'admin'
+        return render_template('admin.html')  # Главная
+    else:
+        flash("У вас нет доступа к этой странице.")  # Сообщение об ошибке
+        prev_page = session.get('prev_page', None)
+        if prev_page and prev_page != 'admin':
+            return redirect(url_for(prev_page))
+        else:
+            return redirect(url_for('home'))  # Перенаправляем на главную страницу
 
 if __name__ == "__main__":
     #app.run(debug=True)
