@@ -43,9 +43,11 @@
           <li><a href="/refs_out_of_court" target="_blank">Список справок, подтверждающих наличие оснований для обращения в МФЦ</a></li>
       </ul>
       </div>
+      {% if session['isAdmin'] == 1 %}
       <div class="container__section">
             <a class="link" href="/admin"><h2> →Страница Администратора← </h2></a><br><br>
       </div>
+      {% endif %}
       <div class="container__section">
         <h2>Результаты анкет</h2><br>
         <div class="container">

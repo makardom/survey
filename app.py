@@ -238,6 +238,7 @@ def back():
 
 @app.route('/profile')
 def profile():
+    session['prev_page'] = 'profile'
     saved = []
     cursor = mysql.connection.cursor()
     user_id = session.get('id')
