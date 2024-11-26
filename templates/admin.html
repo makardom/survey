@@ -48,9 +48,9 @@
                     <tbody>
                         {% for item in items %}
                             <tr>
-                                <td>{{ item[0] }}</td>
-                                <td>{{ item[1] }}</td>
-                                <td>{{ "Да" if item[2] == 1 else "Нет" }}</td>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.username }}</td>
+                                <td>{{ "Да" if item.isAdmin == 1 else "Нет" }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
