@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 from flask_mysqldb import MySQL
+from flask_paginate import Pagination
 import MySQLdb.cursors
 import re
 import hashlib
@@ -223,7 +224,7 @@ def sign_up():
 def logout():
     session.pop('loggedin', None)
     session.pop('isAdmin', None)
-    return redirect(url_for(session['prev_page']))
+    return redirect(url_for('home'))
 
 @app.route('/back', methods=['GET'])
 def back():
@@ -279,7 +280,31 @@ def admin():
     # Проверяем, есть ли у пользователя доступ к админской странице
     if 'isAdmin' in session and session['isAdmin'] == 1:
         session['prev_page'] = 'admin'
-        return render_template('admin.html')  # Главная
+        page = request.args.get('page', 1, type=int)
+        per_page = 10  # количество элементов на странице
+        
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM form')
+        total = cursor.fetchone()[0]
+        
+        offset = (page - 1) * per_page
+        cursor.execute("SELECT id, username, isAdmin FROM form LIMIT %s OFFSET %s", 
+                  (per_page, offset))
+        items = cursor.fetchall()
+    
+        cursor.close()
+
+        pagination = Pagination(page=page, per_page=per_page, total=total, 
+                              record_name='items')
+        if pagination.has_prev:
+            prev_page = max(pagination.page - 1, 1)
+        else:
+            prev_page = None
+
+        return render_template('admin.html', 
+                             items=items,
+                             pagination=pagination,
+                             prev_page=prev_page)  # Главная с пагинацией
     else:
         flash("У вас нет доступа к этой странице.")  # Сообщение об ошибке
         prev_page = session.get('prev_page', None)
