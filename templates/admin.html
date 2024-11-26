@@ -50,7 +50,7 @@
                             <tr>
                                 <td>{{ item.id }}</td>
                                 <td>{{ item.username }}</td>
-                                <td>{{ "Да" if item.isAdmin == 1 else "Нет" }}</td>
+                                <td>{{ "Да" if ite == 1 else "Нет" }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -74,16 +74,6 @@
                     {% if pagination.has_next %}
                         <a href="{{ url_for('admin', page=pagination.next_num) }}" class="pagination__next">Следующая &raquo;</a>
                     {% endif %}
-                </div>
-                
-                <!-- Отладочная информация -->
-                <div style="background: #f0f0f0; padding: 10px; margin: 10px;">
-                    has_prev: {{ pagination.has_prev }}
-                    prev_num: {{ pagination.prev_num }}
-                    current_page: {{ pagination.page }}
-                    has_next: {{ pagination.has_next }}
-                    next_num: {{ pagination.next_num }}
-                    total_pages: {{ pagination.total_pages }}
                 </div>
             </div>
         </main>
