@@ -23,12 +23,12 @@
                     </nav>
                     <div class="autorization__home">
                         {% if 'loggedin' in session %}
-                        <a class="link_auto" href="/profile" target="_blank">Профиль</a>
+                        <a class="link_auto" href="/profile">Профиль</a>
                         <form action="/logout" method="post">    
                             <input class="link_auto" type="submit" value="Выйти">
                         </form>
                         {% else %}
-                        <a class="link_auto" href="/sign-in" target="_blank">Войти</a>
+                        <a class="link_auto" href="/sign-in">Войти</a>
                         {% endif %} 
                     </div>
                 </div>
