@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 from flask_mysqldb import MySQL
-from flask_paginate import Pagination
+from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy.pagination import Pagination
 import MySQLdb.cursors
 import re
 import hashlib
@@ -17,6 +18,8 @@ app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'user'
 app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'LOGIN'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://user:@localhost/LOGIN'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 mysql = MySQL(app)
 
@@ -274,44 +277,37 @@ def get_saved_answers_from_database(session_num):
     except Exception as e:
         app.logger.error(f"Failed to get saved answers from database: {e}")
         return []
-    
+
+db = SQLAlchemy(app)
+class Form(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80))
+    isAdmin = db.Column(db.Integer)
+
 @app.route('/admin')
 def admin():
-    # Проверяем, есть ли у пользователя доступ к админской странице
     if 'isAdmin' in session and session['isAdmin'] == 1:
         session['prev_page'] = 'admin'
         page = request.args.get('page', 1, type=int)
-        per_page = 10  # количество элементов на странице
+        per_page = 10
         
-        cursor = mysql.connection.cursor()
-        cursor.execute('SELECT COUNT(*) FROM form')
-        total = cursor.fetchone()[0]
+        pagination = Form.query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
         
-        offset = (page - 1) * per_page
-        cursor.execute("SELECT id, username, isAdmin FROM form LIMIT %s OFFSET %s", 
-                  (per_page, offset))
-        items = cursor.fetchall()
-    
-        cursor.close()
+        items = pagination.items
 
-        pagination = Pagination(page=page, per_page=per_page, total=total, 
-                              record_name='items')
-        if pagination.has_prev:
-            prev_page = max(pagination.page - 1, 1)
-        else:
-            prev_page = None
-
-        return render_template('admin.html', 
+        return render_template('admin.html',
                              items=items,
-                             pagination=pagination,
-                             prev_page=prev_page)  # Главная с пагинацией
+                             pagination=pagination)
     else:
         flash("У вас нет доступа к этой странице.")  # Сообщение об ошибке
         prev_page = session.get('prev_page', None)
         if prev_page and prev_page != 'admin':
             return redirect(url_for(prev_page))
-        else:
-            return redirect(url_for('home'))  # Перенаправляем на главную страницу
+        return redirect(url_for('home'))
 
 if __name__ == "__main__":
     #app.run(debug=True)

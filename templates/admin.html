@@ -61,7 +61,7 @@
                         <a href="{{ url_for('admin', page=pagination.prev_num) }}" class="pagination__prev">&laquo; Предыдущая</a>
                     {% endif %}
                     
-                    {% for page in range(1, pagination.total_pages + 1) %}
+                    {% for page in range(1, pagination.pages + 1) %}
                         {% if page %}
                             {% if page == pagination.page %}
                                 <a href="{{ url_for('admin', page=page) }}" class="pagination__item active">{{ page }}</a>
@@ -78,9 +78,11 @@
                 
                 <!-- Отладочная информация -->
                 <div style="background: #f0f0f0; padding: 10px; margin: 10px;">
+                    has_prev: {{ pagination.has_prev }}
                     prev_num: {{ pagination.prev_num }}
                     current_page: {{ pagination.page }}
-                    has_prev: {{ pagination.has_prev }}
+                    has_next: {{ pagination.has_next }}
+                    next_num: {{ pagination.next_num }}
                     total_pages: {{ pagination.total_pages }}
                 </div>
             </div>
