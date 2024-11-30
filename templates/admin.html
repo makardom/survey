@@ -60,24 +60,6 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                
-                <div class="filter-button">
-                    <form action="{{ url_for('admin') }}" method="get">
-                        <select name="filter">
-                            <option value="all" {% if request.args.get('filter') == 'all' or request.args.get('filter') is none %}selected{% endif %}>Показать всех</option>
-                            <option value="admin" {% if request.args.get('filter') == 'admin' %}selected{% endif %}>Показать администраторов</option>
-                            <option value="user" {% if request.args.get('filter') == 'user' %}selected{% endif %}>Показать обычных пользователей</option>
-                        </select>
-                        <button type="submit" style="margin-top: 3px; font-size: 13px; padding: 5px; color: #fff; background-color: rgb(124, 108, 108); cursor: pointer; border: none; border-radius: 5px;">Показать</button>
-                    </form>
-                </div>
-                <div class="upload-file">
-                    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-                        <input type="file" name="file" accept=".csv, .xlsx, .txt">
-                        <button type="submit" style="margin-top: 3px; font-size: 13px; padding: 5px; color: #fff; background-color: rgb(124, 108, 108); cursor: pointer; border: none; border-radius: 5px;">Загрузить файл</button>
-                    </form>
-                </div>
-
                 <div class="pagination">
                     {% if pagination.has_prev %}
                         <a href="{{ url_for('admin', page=pagination.prev_num) }}" class="pagination__prev">&laquo; Предыдущая</a>
@@ -97,6 +79,60 @@
                         <a href="{{ url_for('admin', page=pagination.next_num) }}" class="pagination__next">Следующая &raquo;</a>
                     {% endif %}
                 </div>
+                
+                <div class="filter-section">
+                    <h3>ФИЛЬТРАЦИЯ</h3>
+                    <div class="filter-button">
+                        <form action="{{ url_for('admin') }}" method="get">
+                            <select name="filter">
+                                <option value="all" {% if request.args.get('filter') == 'all' or request.args.get('filter') is none %}selected{% endif %}>Показать всех</option>
+                                <option value="admin" {% if request.args.get('filter') == 'admin' %}selected{% endif %}>Показать администраторов</option>
+                                <option value="user" {% if request.args.get('filter') == 'user' %}selected{% endif %}>Показать обычных пользователей</option>
+                            </select>
+                            <button type="submit" style="margin-top: 3px; font-size: 13px; padding: 5px; color: #fff; background-color: rgb(124, 108, 108); cursor: pointer; border: none; border-radius: 5px;">Показать</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="upload-section">
+                    <h3>ПОДГРУЗКА ФАЙЛОВ</h3>
+                    <div class="upload-file">
+                        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                            <input type="file" name="file" accept=".csv, .xlsx, .txt" style="display: inline-block;">
+                            <button type="submit" style="display: inline-block; margin-left: 10px; font-size: 13px; padding: 5px; color: #fff; background-color: rgb(124, 108, 108); cursor: pointer; border: none; border-radius: 5px;">Загрузить файл</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="load-section">
+                    <h3>ЗАГРУЗКА ФАЙЛОВ</h3>
+                    <div class="file-list">
+                        <button id="load-files" style="margin-bottom: 10px;">Загрузить файлы</button>
+                        <ul id="file-list">
+                            <!-- Список файлов будет загружен сюда -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <script>
+                document.getElementById('load-files').addEventListener('click', function() {
+                    fetch('{{ url_for("get_files") }}')
+                        .then(response => response.json())
+                        .then(files => {
+                            const fileList = document.getElementById('file-list');
+                            fileList.innerHTML = ''; // Очистить текущий список
+                            files.forEach(file => {
+                                const li = document.createElement('li');
+                                const a = document.createElement('a');
+                                a.href = '{{ url_for("download_file", filename="") }}' + file;
+                                a.textContent = file;
+                                li.appendChild(a);
+                                fileList.appendChild(li);
+                            });
+                        })
+                        .catch(error => console.error('Error loading files:', error));
+                });
+                </script>
             </div>
         </main>
     </body>

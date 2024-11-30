@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, jsonify
 from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.pagination import Pagination
@@ -12,7 +12,7 @@ import os
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = 'C:/Users/dimak/Desktop/Learning/9sem/project_2/survey/uploads/'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 app.secret_key = ' key'
@@ -160,6 +160,13 @@ def get_saved_answers_from_database_form(session_num):
         app.logger.error(f"Failed to get saved answers from database: {e}")
         return []
 
+@app.route('/get-files')
+def get_files():
+    try:
+        files = os.listdir(app.config['UPLOAD_FOLDER'])
+    except FileNotFoundError:
+        files = []
+    return jsonify(files)
 
 @app.route('/')
 def home():
@@ -271,6 +278,20 @@ def upload_file():
     if file:
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
         return redirect(url_for('admin'))
+
+@app.route('/files')
+def list_files():
+    try:
+        files = os.listdir(app.config['UPLOAD_FOLDER'])
+        app.logger.debug(f"Files in uploads: {files}")
+    except FileNotFoundError:
+        files = []
+        app.logger.error("Uploads folder not found.")
+    return render_template('files.html', files=files)
+
+@app.route('/uploads/<filename>')
+def download_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 def get_saved_answers_from_database(session_num):
     try:
