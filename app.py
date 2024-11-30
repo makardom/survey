@@ -224,8 +224,9 @@ def sign_up():
         elif not username or not hashed_password:
             msg = 'Поля должны быть заполнены!'
         else:
-            cursor.execute('INSERT INTO form (`username`, `password`, `isAdmin`) VALUES (%s, %s, %s)',
-                           (username, hashed_password, 0))
+            registration_date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+            cursor.execute('INSERT INTO form (username, password, isAdmin, registration_date) VALUES (%s, %s, %s, %s)',
+                           (username, hashed_password, 0, registration_date))
             mysql.connection.commit()
             msg = 'Регистрация прошла успешно!'
             return redirect(url_for('sign_in'))

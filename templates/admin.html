@@ -43,6 +43,7 @@
                             <th>ID</th>
                             <th>Email пользователя</th>
                             <th>Админ</th>
+                            <th>Дата регистрации</th> <!-- Новый столбец -->
                         </tr>
                     </thead>
                     <tbody>
@@ -55,6 +56,7 @@
                                 <td>{{ item.id }}</td>
                                 <td>{{ item.username }}</td>
                                 <td>{{ "Да" if item.isAdmin else "Нет" }}</td>
+                                <td>{{ item.registration_date if item.registration_date else 'N/A' }}</td>
                             </tr>
                             {% endif %}
                         {% endfor %}
@@ -88,6 +90,10 @@
                                 <option value="all" {% if request.args.get('filter') == 'all' or request.args.get('filter') is none %}selected{% endif %}>Показать всех</option>
                                 <option value="admin" {% if request.args.get('filter') == 'admin' %}selected{% endif %}>Показать администраторов</option>
                                 <option value="user" {% if request.args.get('filter') == 'user' %}selected{% endif %}>Показать обычных пользователей</option>
+                            </select>
+                            <select name="sort">
+                                <option value="asc" {% if request.args.get('sort') == 'asc' %}selected{% endif %}>Сначала старые</option>
+                                <option value="desc" {% if request.args.get('sort') == 'desc' %}selected{% endif %}>Сначала новые</option>
                             </select>
                             <button type="submit" style="margin-top: 3px; font-size: 13px; padding: 5px; color: #fff; background-color: rgb(124, 108, 108); cursor: pointer; border: none; border-radius: 5px;">Показать</button>
                         </form>
