@@ -8,9 +8,13 @@ import hashlib
 import json
 import logging
 from datetime import datetime
+import os
 
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 app.secret_key = ' key'
 app.logger.setLevel(logging.DEBUG)
 
@@ -236,17 +240,16 @@ def back():
         session.modified = True
     return redirect(url_for('form', question_id=session['history'][-1]))
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET'])
 def profile():
     session['prev_page'] = 'profile'
     saved = []
     cursor = mysql.connection.cursor()
     user_id = session.get('id')
-    cursor.execute('SELECT session\
-                    FROM sessions WHERE uid = %s', (user_id,  ))
+    cursor.execute('SELECT session FROM sessions WHERE uid = %s', (user_id,))
     num_of_sessions = cursor.fetchall()
     print(num_of_sessions)
-    cursor.close() 
+    cursor.close()
     date_array = []
     res_array = []
     if num_of_sessions != ():
@@ -255,8 +258,19 @@ def profile():
                 saved.append(get_saved_answers_from_database(i)[0])
                 res_array.append(get_saved_answers_from_database(i)[1][0][0])
                 date_array.append(get_saved_answers_from_database(i)[2][0][0])
-        return render_template('profile.html', session_data=(zip(date_array,saved,res_array)))  # Личный кабинет с прошлыми результатами анкеты  # Личный кабинет с прошлыми результатами анкеты
-    return render_template('profile.html', user_id = session.get('id'))
+        return render_template('profile.html', session_data=(zip(date_array, saved, res_array)))
+    return render_template('profile.html', user_id=session.get('id'))
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return 'No file part', 400
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file', 400
+    if file:
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        return redirect(url_for('admin'))
 
 def get_saved_answers_from_database(session_num):
     try:
