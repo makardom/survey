@@ -27,6 +27,9 @@ input[type="submit"] {
     border: none;
     border-radius: 5px; 
   }
+  input[type="file"] {
+    display: none; 
+}
 
 
 /* Container */
@@ -793,6 +796,18 @@ ul {
     height: 90px;
 }
 
+.custom-file-upload {
+    display: inline-block; 
+    margin-left: 10px; 
+    font-size: 13px; 
+    padding: 5px; 
+    color: #fff; 
+    background-color: rgb(124, 108, 108); 
+    cursor: pointer; 
+    border: none; 
+    border-radius: 5px;
+}
+
 /*для работы корзины*/
 .minus,
 .plus{
@@ -823,6 +838,7 @@ width: 55px;
     color: #fff;
     background-color: #f38181;
 }
+
 
 
 /*для страницы товара*/

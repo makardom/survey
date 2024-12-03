@@ -12,7 +12,7 @@ import os
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'C:/Users/dimak/Desktop/Learning/9sem/project_2/survey/uploads/'
+app.config['UPLOAD_FOLDER'] = './uploads/'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 app.secret_key = ' key'
