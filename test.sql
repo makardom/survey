@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS `form` (
 
 CREATE TABLE IF NOT EXISTS `questions` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
-    `qid` varchar(50) not null,
+    `qid` varchar(50) not null UNIQUE,
     `question` varchar(250) NOT NULL,
-    PRIMARY KEY (`qid`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
  insert into `questions` (`qid`, `question`) values
  (-3, "Рекомендовано внесудебное банкротство"),
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
  ('again','	Производство окончено, но после этого возбуждено новое');
 
 CREATE TABLE IF NOT EXISTS `sessions` (
-    `uid` varchar(50) NOT NULL primary key,
+    `uid` varchar(50) NOT NULL,
     `session` int(11) UNIQUE,
     PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
