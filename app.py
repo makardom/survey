@@ -248,6 +248,17 @@ def back():
         session.modified = True
     return redirect(url_for('form', question_id=session['history'][-1]))
 
+@app.route('/judicial_bankruptcy')
+def judicial_bankruptcy_info():
+    session['prev_page'] = 'judicial_bankruptcy_info'
+    return render_template('judicial_bankruptcy.html')  
+
+
+@app.route('/out-of-court_bankruptcy')
+def out_of_court_bankruptcy_info():
+    session['prev_page'] = 'out_of_court_bankruptcy_info'
+    return render_template('out-of-court_bankruptcy.html')
+
 @app.route('/profile', methods=['GET'])
 def profile():
     session['prev_page'] = 'profile'
