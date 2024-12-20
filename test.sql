@@ -10,19 +10,6 @@ CREATE TABLE IF NOT EXISTS `form` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `result` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `session` int(11) not null,
-    `uid` varchar(50) NOT NULL,
-    `qid` varchar(50) NOT NULL,
-    `answer` varchar(25),
-    `date` VARCHAR(25),
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`session`) REFERENCES sessions (`session`) ON DELETE CASCADE,
-    FOREIGN KEY (`uid`) REFERENCES sessions (`uid`) ON DELETE CASCADE,
-    FOREIGN KEY (`qid`) REFERENCES questions (`qid`) ON DELETE CASCADE
-
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `questions` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -68,9 +55,24 @@ CREATE TABLE IF NOT EXISTS `questions` (
 
 CREATE TABLE IF NOT EXISTS `sessions` (
     `uid` varchar(50) NOT NULL primary key,
-    `session` int(11),
-    PRIMARY KEY (`uid`, `session`)
+    `session` int(11) UNIQUE,
+    PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `result` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `session` int(11) not null,
+    `uid` varchar(50) NOT NULL,
+    `qid` varchar(50) NOT NULL,
+    `answer` varchar(25),
+    `date` VARCHAR(25),
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`session`) REFERENCES sessions (`session`) ON DELETE CASCADE,
+    FOREIGN KEY (`uid`) REFERENCES sessions (`uid`) ON DELETE CASCADE,
+    FOREIGN KEY (`qid`) REFERENCES questions (`qid`) ON DELETE CASCADE
+
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 
 INSERT INTO `form` (`username`, `password`, `isAdmin`, `registration_date`) 
 VALUES 
