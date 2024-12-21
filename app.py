@@ -259,6 +259,25 @@ def out_of_court_bankruptcy_info():
     session['prev_page'] = 'out_of_court_bankruptcy_info'
     return render_template('out-of-court_bankruptcy.html')
 
+
+def parse_answers(input_string):
+    # Разделим строку по разделителю '; '
+    # Также позаботимся о лишних пробелах
+    pairs = input_string.split('; ')
+    
+    # Создадим список кортежей из пар "вопрос, ответ"
+    result = []
+    for pair in pairs:
+        # Разделим каждую пару по разделителю ', '
+        if ', ' in pair:  # Проверим, есть ли разделитель
+            question, answer = pair.split(', ', 1)  # Только первое разделение
+            result.append((question.strip(), answer.strip()))  # Убираем лишние пробелы
+        else:
+            # Если разделитель не найден, можем добавить с пустым ответом
+            result.append((pair.strip(), ''))  # или можете пропустить, в зависимости от вашей логики
+
+    return result
+
 @app.route('/profile', methods=['GET'])
 def profile():
     session['prev_page'] = 'profile'
@@ -274,7 +293,7 @@ def profile():
     if num_of_sessions != ():
         for i in range(1, num_of_sessions[0][0] + 1):
             if get_saved_answers_from_database(i)[0] != () and get_saved_answers_from_database(i)[1] != ():
-                saved.append(get_saved_answers_from_database(i)[0])
+                saved = parse_answers(get_saved_answers_from_database(i)[0])
                 res_array.append(get_saved_answers_from_database(i)[1][0][0])
                 date_array.append(get_saved_answers_from_database(i)[2][0][0])
         return render_template('profile.html', session_data=(zip(date_array, saved, res_array)))
@@ -309,10 +328,10 @@ def get_saved_answers_from_database(session_num):
     try:
         user_id = session.get('id')
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT DISTINCT questions.question, text \
+        cursor.execute('SELECT group_concat(concat(questions.question, ', ', text) separator "; ") \
                        FROM questions JOIN result ON questions.qid = result.qid \
                        JOIN answers ON result.answer = answers.aid\
-                       WHERE result.uid = %s AND result.session = %s', (user_id, session_num, ))
+                       WHERE result.uid = %s AND result.session = %s group by result.uid', (user_id, session_num, ))
         saved_answers = cursor.fetchall()
         cursor.execute('SELECT DISTINCT questions.question \
                        FROM questions JOIN result ON questions.qid = result.qid \
