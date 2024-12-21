@@ -67,9 +67,8 @@ CREATE TABLE IF NOT EXISTS `result` (
     `answer` varchar(25),
     `date` VARCHAR(25),
     PRIMARY KEY (`id`),
-    FOREIGN KEY (`session`) REFERENCES sessions (`session`) ON DELETE CASCADE,
-    FOREIGN KEY (`uid`) REFERENCES sessions (`uid`) ON DELETE CASCADE,
-    FOREIGN KEY (`qid`) REFERENCES questions (`qid`) ON DELETE CASCADE
+    FOREIGN KEY (`uid`) REFERENCES sessions (`uid`),
+    FOREIGN KEY (`qid`) REFERENCES questions (`qid`)
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
