@@ -55,8 +55,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
 
 CREATE TABLE IF NOT EXISTS `sessions` (
     `uid` varchar(50) NOT NULL,
-    `session` int(11) UNIQUE,
-    PRIMARY KEY (`uid`)
+    `session` int(11) UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `result` (
@@ -67,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `result` (
     `answer` varchar(25),
     `date` VARCHAR(25),
     PRIMARY KEY (`id`),
-    FOREIGN KEY (`uid`) REFERENCES sessions (`uid`),
     FOREIGN KEY (`qid`) REFERENCES questions (`qid`)
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
