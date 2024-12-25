@@ -70,6 +70,11 @@ CREATE TABLE IF NOT EXISTS `result` (
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `res_denorm` (
+    `uid` varchar(50) NOT NULL,
+    `session` int(11) not null,
+    `results` varchar(10000) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 INSERT INTO `form` (`username`, `password`, `isAdmin`, `registration_date`) 
 VALUES 
