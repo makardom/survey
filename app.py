@@ -328,10 +328,16 @@ def get_saved_answers_from_database(session_num):
     try:
         user_id = session.get('id')
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT group_concat(concat(questions.question, ', ', text) separator "; ") \
+        cursor.execute('INSERT INTO res_denorm (session, uid, results) SELECT result.session, result.uid, group_concat(concat(questions.question, ', ', text) separator "; ") \
                        FROM questions JOIN result ON questions.qid = result.qid \
                        JOIN answers ON result.answer = answers.aid\
                        WHERE result.uid = %s AND result.session = %s group by result.uid', (user_id, session_num, ))
+        mysql.connection.commit()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT results \
+                       FROM res_denorm \
+                       WHERE uid = %s AND session = %s', (user_id, session_num, ))
         saved_answers = cursor.fetchall()
         cursor.execute('SELECT DISTINCT questions.question \
                        FROM questions JOIN result ON questions.qid = result.qid \
