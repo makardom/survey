@@ -76,6 +76,8 @@ CREATE TABLE IF NOT EXISTS `res_denorm` (
     `results` varchar(10000) NOT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+CREATE INDEX for_denorm ON `result`(`uid`);
+
 INSERT INTO `form` (`username`, `password`, `isAdmin`, `registration_date`) 
 VALUES 
 ('admin@gmail.com', '6b86b273ff34fce19d6b804eff5a3f5', true, '2024-11-21 10:15:30'),
