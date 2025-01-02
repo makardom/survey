@@ -51,11 +51,11 @@ CREATE TABLE IF NOT EXISTS `questions` (
  ('yes', 'Да'),
  ('no', 'Нет'),
  ('end', 'Производство окончено в связи с отсутствием имущества'),
- ('again','	Производство окончено, но после этого возбуждено новое');
+ ('again','Производство окончено, но после этого возбуждено новое');
 
 CREATE TABLE IF NOT EXISTS `sessions` (
     `uid` varchar(50) NOT NULL,
-    `session` int(11) UNIQUE
+    `session` int(11) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `result` (

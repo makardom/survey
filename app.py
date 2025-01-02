@@ -263,8 +263,7 @@ def out_of_court_bankruptcy_info():
 def parse_answers(input_string):
     # Разделим строку по разделителю '; '
     # Также позаботимся о лишних пробелах
-    pairs = input_string.split('; ')
-    
+    pairs = input_string[0].split('; ')
     # Создадим список кортежей из пар "вопрос, ответ"
     result = []
     for pair in pairs:
@@ -275,7 +274,6 @@ def parse_answers(input_string):
         else:
             # Если разделитель не найден, можем добавить с пустым ответом
             result.append((pair.strip(), ''))  # или можете пропустить, в зависимости от вашей логики
-
     return result
 
 @app.route('/profile', methods=['GET'])
@@ -292,10 +290,13 @@ def profile():
     res_array = []
     if num_of_sessions != ():
         for i in range(1, num_of_sessions[0][0] + 1):
-            if get_saved_answers_from_database(i)[0] != () and get_saved_answers_from_database(i)[1] != ():
-                saved = parse_answers(get_saved_answers_from_database(i)[0])
-                res_array.append(get_saved_answers_from_database(i)[1][0][0])
-                date_array.append(get_saved_answers_from_database(i)[2][0][0])
+            answers = get_saved_answers_from_database(i)
+            print(answers)
+            if answers != [] and answers[0] != () and answers[1] != ():
+                saved.append(parse_answers(answers[0][0]))
+                # saved.append(answers[0])
+                res_array.append(answers[1][0][0])
+                date_array.append(answers[2][0][0])
         return render_template('profile.html', session_data=(zip(date_array, saved, res_array)))
     return render_template('profile.html', user_id=session.get('id'))
 
@@ -328,14 +329,14 @@ def get_saved_answers_from_database(session_num):
     try:
         user_id = session.get('id')
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT results \
-                       FROM res_denorm \
-                       WHERE uid = %s AND session = %s', (user_id, session_num, ))
-        saved_answers = cursor.fetchall()
-        cursor.execute('SELECT group_concat(concat(questions.question, ', ', text) separator "; ") \
+        cursor.execute('SELECT group_concat(concat(questions.question, \", \", text) separator \"; \") \
                        FROM questions JOIN result ON questions.qid = result.qid \
-                       JOIN answers ON result.answer = answers.aid\
-                       WHERE result.uid = %s AND result.session = %s group by result.uid', (user_id, session_num, ))
+                       JOIN answers ON result.answer = answers.aid \
+                       WHERE result.uid = %s AND result.session = %s  group by result.uid', (user_id, session_num, ))
+        saved_answers = cursor.fetchall()
+        cursor.execute('SELECT DISTINCT questions.question \
+                       FROM questions JOIN result ON questions.qid = result.qid \
+                       WHERE result.uid = %s AND result.qid < 0 AND result.session = %s', (user_id, session_num, ))
         result = cursor.fetchall()
         cursor.execute('SELECT DISTINCT date FROM result WHERE uid = %s AND session = %s', (user_id, session_num, ))
         date = cursor.fetchall()
