@@ -69,19 +69,24 @@ def form():
     if question_id == 1:
         current_datetime = datetime.now().strftime('%d-%m-%Y %H:%M')
         print(current_datetime)
-        cursor = mysql.connection.cursor()
-        user_id = session.get('id')  
-        if user_id == None:
-            user_id = 0
-            cursor.execute('DELETE FROM result WHERE uid = 0')
-            mysql.connection.commit()
-        cursor.execute('INSERT INTO sessions (uid, session) \
+        try:
+            cursor = mysql.connection.cursor()
+            user_id = session.get('id')  
+            if user_id == None:
+                user_id = 0
+                cursor.execute('DELETE FROM result WHERE uid = 0')
+            cursor.execute('INSERT INTO sessions (uid, session) \
                         SELECT %s, %s \
                         WHERE NOT EXISTS (SELECT * FROM sessions WHERE uid = %s);', (user_id, 0, user_id, ))
-        cursor.execute('UPDATE sessions SET session = session + 1 \
+            cursor.execute('UPDATE sessions SET session = session + 1 \
                        WHERE uid = %s', (user_id,))
-        mysql.connection.commit()
-        cursor.close()
+            mysql.connection.commit()
+        
+        except Exception as e:
+            mysql.connection.rollback()
+            app.logger.error(f"Error: {e}")
+        finally:
+            cursor.close()
     elif question_id < 0:
         print(session['history'])
         user_id = session.get('id') 
@@ -91,23 +96,27 @@ def form():
             res = html_for_court(session['answers'])
         else:
             res = results[int(session['history'][-2])]
-        cursor = mysql.connection.cursor()
-        #print(user_id)
-        save_answers_to_database(question_id, 'NULL')
-        cursor.execute('SELECT session FROM sessions WHERE uid = %s', (user_id,))
-        session_num = cursor.fetchone()
-        print(session_num)
-        current_datetime = datetime.now().strftime('%d-%m-%Y %H:%M')
-        cursor.execute('UPDATE result SET date = %s \
-                       WHERE session = %s', (current_datetime, session_num[0],))
-        cursor.execute('DELETE FROM result WHERE id NOT IN (\
-                        SELECT MAX(id)\
-                        FROM (select * from result) as res \
-                        GROUP BY qid, session)')
-        mysql.connection.commit()
-        cursor.close()
+        try:
+            cursor = mysql.connection.cursor()
+            save_answers_to_database(question_id, 'NULL')
+            cursor.execute('SELECT session FROM sessions WHERE uid = %s', (user_id,))
+            session_num = cursor.fetchone()
+            print(session_num)
+            current_datetime = datetime.now().strftime('%d-%m-%Y %H:%M')
+            cursor.execute('UPDATE result SET date = %s \
+                           WHERE session = %s', (current_datetime, session_num[0],))
+            cursor.execute('DELETE FROM result WHERE id NOT IN (\
+                            SELECT MAX(id)\
+                            FROM (select * from result) as res \
+                            GROUP BY qid, session)')
+            mysql.connection.commit()
+
+        except Exception as e:
+            mysql.connection.rollback()
+            app.logger.error(f"Error: {e}")
+        finally:
+            cursor.close()
         saved = get_saved_answers_from_database_form(session_num[0])
-        #print(saved)
         if ('17' in session['answers'] and session['answers']['17'] == 'yes' or '18' in session['answers'] and session['answers']['18'] == 'no') and '3' in session['answers'] and session['answers']['3'] == 'yes':
             answer_17 = False
         else:
@@ -125,19 +134,15 @@ def save_answers_to_database(q_id, answer):
         cursor.execute('INSERT INTO sessions (uid, session) \
                         SELECT %s, %s \
                         WHERE NOT EXISTS (SELECT * FROM sessions WHERE uid = %s);', (user_id, 1, user_id, ))
-        mysql.connection.commit()
-        session_number = cursor.fetchone()
-        cursor.close()
-        cursor = mysql.connection.cursor()
         cursor.execute('SELECT session FROM sessions where uid = %s', (user_id, ))
         session_number = cursor.fetchone()
-        cursor.close()
-        cursor = mysql.connection.cursor()
         cursor.execute('INSERT INTO result (session, uid, qid, answer) VALUES (%s, %s, %s, %s)', (session_number, user_id, q_id, answer, ))
         mysql.connection.commit()
-        cursor.close()
     except Exception as e:
+        mysql.connection.rollback()
         app.logger.error(f"Failed to save answers to database: {e}")
+    finally:
+        cursor.close()
 
 
 def get_saved_answers_from_database_form(session_num):
@@ -213,23 +218,28 @@ def sign_up():
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         username = request.form['username']
         hashed_password = hashlib.sha256(request.form['password'].encode('utf-8')).hexdigest()
-
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM form WHERE username = %s', (username,))
-        account = cursor.fetchone()
-        if account:
-            msg = 'Такой аккаунт уже существует'
-        elif not re.match(r'\w+[\w\.\_\-]+\w+\@\w+[\w\.]+\w+.\w{1,3}', username):
-            msg = 'Введите корректный адрес электронной почты!'
-        elif not username or not hashed_password:
-            msg = 'Поля должны быть заполнены!'
-        else:
-            registration_date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-            cursor.execute('INSERT INTO form (username, password, isAdmin, registration_date) VALUES (%s, %s, %s, %s)',
-                           (username, hashed_password, 0, registration_date))
-            mysql.connection.commit()
-            msg = 'Регистрация прошла успешно!'
-            return redirect(url_for('sign_in'))
+        try:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('SELECT * FROM form WHERE username = %s', (username,))
+            account = cursor.fetchone()
+            if account:
+                msg = 'Такой аккаунт уже существует'
+            elif not re.match(r'\w+[\w\.\_\-]+\w+\@\w+[\w\.]+\w+.\w{1,3}', username):
+                msg = 'Введите корректный адрес электронной почты!'
+            elif not username or not hashed_password:
+                msg = 'Поля должны быть заполнены!'
+            else:
+                registration_date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                cursor.execute('INSERT INTO form (username, password, isAdmin, registration_date) VALUES (%s, %s, %s, %s)',
+                              (username, hashed_password, 0, registration_date))
+                mysql.connection.commit()
+                msg = 'Регистрация прошла успешно!'
+                return redirect(url_for('sign_in'))
+        except Exception as e:
+            mysql.connection.rollback()
+            app.logger.error(f"Error: {e}")
+        finally:
+            cursor.close()
     elif request.method == 'POST':
         msg = 'Поля должны быть заполнены!'
     return render_template('sign_up.html', msg=msg)
@@ -261,19 +271,14 @@ def out_of_court_bankruptcy_info():
 
 
 def parse_answers(input_string):
-    # Разделим строку по разделителю '; '
-    # Также позаботимся о лишних пробелах
     pairs = input_string[0].split('; ')
-    # Создадим список кортежей из пар "вопрос, ответ"
     result = []
     for pair in pairs:
-        # Разделим каждую пару по разделителю ', '
-        if ', ' in pair:  # Проверим, есть ли разделитель
-            question, answer = pair.split(', ', 1)  # Только первое разделение
-            result.append((question.strip(), answer.strip()))  # Убираем лишние пробелы
+        if ', ' in pair:  
+            question, answer = pair.split(', ', 1)  
+            result.append((question.strip(), answer.strip()))  
         else:
-            # Если разделитель не найден, можем добавить с пустым ответом
-            result.append((pair.strip(), ''))  # или можете пропустить, в зависимости от вашей логики
+            result.append((pair.strip(), ''))  
     return result
 
 @app.route('/profile', methods=['GET'])
