@@ -9,7 +9,33 @@ import json
 import logging
 from datetime import datetime
 import os
+import asyncio
 
+from telegram import Bot, Update
+from telegram.ext import CommandHandler, ApplicationBuilder, ContextTypes
+from telegram.ext import CallbackContext
+
+TELEGRAM_TOKEN = '5781751889:AAE6x0ivPQoq85c6QjChPNU0IZlbpLHTsM4'
+CHAT_ID = 435066431 
+
+bot = Bot(token=TELEGRAM_TOKEN)
+
+async def send_answers_via_telegram(answers):
+    message = "Новые ответы:\n" + "\n".join([f"Вопрос {k}: {v}" for k, v in answers.items()])
+    await bot.send_message(chat_id=CHAT_ID, text=message)
+
+async def start_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Welcome to my awesome bot!")
+
+async def get_user_count(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    app.logger.info("Получена команда /user_count")
+    await update.message.reply_text(f"Количество пользователей в системе: 1000")
+    # cursor = mysql.connection.cursor()
+    # cursor.execute('SELECT COUNT(*) FROM form')
+    # user_count = cursor.fetchone()[0]
+    # cursor.close()
+    # print(user_count)
+    # await update.message.reply_text(f"Количество пользователей в системе: {user_count}")
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './uploads/'
@@ -160,6 +186,11 @@ def get_saved_answers_from_database_form(session_num):
            # cursor.execute('DELETE FROM result WHERE uid = 0')
            # mysql.connection.commit()
         cursor.close() 
+
+        # Отправка ответов в Telegram
+        answers_dict = {question: text for question, text in saved_answers}
+        asyncio.run(send_answers_via_telegram(answers_dict))
+
         return saved_answers
     except Exception as e:
         app.logger.error(f"Failed to get saved answers from database: {e}")
@@ -383,6 +414,15 @@ def admin():
             return redirect(url_for(prev_page))
         return redirect(url_for('home'))
 
-if __name__ == "__main__":
-    #app.run(debug=True)
+def run_flask():
     app.run(debug=True, port=80, host='0.0.0.0')
+
+def run_telegram():
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    application.add_handler(CommandHandler('start', start_callback))
+    application.add_handler(CommandHandler('user_count', get_user_count))
+    application.run_polling()
+
+if __name__ == "__main__":
+    run_flask()
+    run_telegram()
