@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <title>Банкрот-эксперт</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/css/form.css">
+        <link rel="stylesheet" href="../static/css/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+        <script src="https://kit.fontawesome.com/c3770d0828.js" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <header class="header__group">
+            <div class="container">
+                <div class="header__inner">
+                    <div class="logo">
+                        <a class="logo_link" href="../">Банкрот-эксперт</a>
+                    </div>
+                    <nav class="nav">
+                        <a class="link" href="/need">Нужно ли банкротиться?</a>
+                        <a class="link" href="/judicial_bankruptcy">Судебное банкротство</a>
+                        <a class="link" href="/out-of-court_bankruptcy">Внесудебное банкротство</a>
+                    </nav>
+                    <div>
+                      {% if 'loggedin' in session %}
+                        <a class="link_auto" href="/profile">Профиль</a>
+                        <form action="/logout" method="post">    
+                            <input class="link_auto" type="submit" value="Выйти">
+                        </form>
+                        {% else %}
+                        <a class="link_auto" href="/sign-in">Войти</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="section">
+            <div class="container__section">
+                <div class="section__header">
+                    <h2 class="section__title">Если Вы прошли анкету, оставьте обратную связь</h2>
+                </div>
+                <div class="survey-container">
+                    <form id="feedback-form" class="survey-form">
+                        <!-- Вопрос 1 -->
+                        <div class="survey-question">
+                            <h3 class="question-title">1. Насколько вопросы анкеты были понятны?</h3>
+                            <p class="question-description">Оцените по шкале от 1 до 10, где 1 - совсем не понятно, 10 - очень понятно</p>
+                            <div class="scale-options">
+                                <div class="scale-labels">
+                                    <span>1</span>
+                                    <span>10</span>
+                                </div>
+                                <input type="range" name="question1" min="1" max="10" value="5" class="scale-slider">
+                                <output class="scale-value">5</output>
+                            </div>
+                        </div>
+        
+                        <!-- Вопрос 2 -->
+                        <div class="survey-question">
+                            <h3 class="question-title">2. Понятен порядок подачи заявления для судебного и несудебного банкротства?</h3>
+                            <p class="question-description">(Если банкротство Вам подходит)</p>
+                            <div class="radio-options">
+                                <label class="radio-option">
+                                    <input type="radio" name="question2" value="yes">
+                                    <span class="radio-custom"></span>
+                                    Да
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="question2" value="no">
+                                    <span class="radio-custom"></span>
+                                    Нет
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="question2" value="not-suitable">
+                                    <span class="radio-custom"></span>
+                                    Банкротство не подходит
+                                </label>
+                            </div>
+                        </div>
+        
+                        <!-- Вопрос 3 -->
+                        <div class="survey-question">
+                            <h3 class="question-title">3. Удовлетворены ли вы полученным результатом и предложенным решением вашей проблемы?</h3>
+                            <p class="question-description">Оцените по шкале от 1 до 10, где 1 - совсем не удовлетворен, 10 - полностью удовлетворен</p>
+                            <div class="scale-options">
+                                <div class="scale-labels">
+                                    <span>1</span>
+                                    <span>10</span>
+                                </div>
+                                <input type="range" name="question3" min="1" max="10" value="5" class="scale-slider">
+                                <output class="scale-value">5</output>
+                            </div>
+                        </div>
+        
+                        <div class="survey-submit">
+                            <button type="submit" class="submit-button">Отправить отзыв</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer class="small__section" id="contacts">
+            <div class="container">
+                <div class="small__inner">
+                    <div class="small__text">                     
+                        <a class="logo_link" href="../" data-scroll="#main"><h2>Банкрот-эксперт</h2></a>
+                    </div>
+                </div>
+                <div class="small__text__form">Вся информация на сайте носит справочный характер и актуальна на 16.04.2024</div>
+            </div>
+        </footer> <!--MAKED-->
+    </body>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="popover"]').popover({
+                html: true,
+                content: function() {
+                    return $(this).attr('data-html-content');
+                },
+                offset: '45, 0'
+            }); 
+            
+        });
+    </script>
+    <script>
+        var accordions = document.getElementsByClassName("accordion__header");
+
+        for (var i = 0; i < accordions.length; i++) {
+            accordions[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var accordion__content = this.nextElementSibling;
+                if (accordion__content.style.maxHeight) {
+                    accordion__content.style.maxHeight = null;
+                    accordion__content.style.border = "none";
+                    } else {
+                    accordion__content.style.maxHeight = accordion__content.scrollHeight + "px";
+                    accordion__content.style.border = "2px solid #1b1818";
+                }
+                if (accordion__content.classList.contains("accordion__content")) {
+                    accordion__content.classList.toggle("active");
+}
+            });
+        }
+    </script>
+    <script>
+    // Обработка изменения значений ползунков
+document.querySelectorAll('.scale-slider').forEach(slider => {
+    const output = slider.nextElementSibling;
+    output.textContent = slider.value;
+    
+    slider.addEventListener('input', function() {
+        output.textContent = this.value;
+    });
+});
+
+// Обработка отправки формы
+document.getElementById('feedback-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Здесь можно добавить код для отправки данных на сервер
+    alert('Спасибо за ваш отзыв!');
+    this.reset();
+    // Сброс значений ползунков
+    document.querySelectorAll('.scale-slider').forEach(slider => {
+        slider.value = 5;
+        slider.nextElementSibling.textContent = '5';
+    });
+}); 
+    </script>
+    <script src="../static/js/app.js"></script>
+</html>
