@@ -15,6 +15,13 @@ from telegram import Bot, Update
 from telegram.ext import CommandHandler, ApplicationBuilder, ContextTypes
 from telegram.ext import CallbackContext
 
+def html_for_court(answers):
+    return {
+        'id': -2,
+        'title': 'Судебное банкротство',
+        'description': 'Рекомендуется процедура судебного банкротства'
+    }
+
 TELEGRAM_TOKEN = '5781751889:AAE6x0ivPQoq85c6QjChPNU0IZlbpLHTsM4'
 CHAT_ID = 435066431 
 
@@ -413,6 +420,11 @@ def admin():
         if prev_page and prev_page != 'admin':
             return redirect(url_for(prev_page))
         return redirect(url_for('home'))
+
+@app.route('/survey')
+def survey():
+    session['prev_page'] = 'survey'
+    return render_template('survey.html')
 
 def run_flask():
     app.run(debug=True, port=80, host='0.0.0.0')
