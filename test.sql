@@ -101,3 +101,13 @@ VALUES
 ('user18@gmail.com', '1f0e3dad99908345f7439f8ffabdffc4', false, '2024-11-29 23:15:10'),
 ('user19@gmail.com', '98f13708210194c475687be6106a3b84', false, '2024-11-30 09:25:15'),
 ('user20@gmail.com', '3c59dc048e8850243be8079a5c74d079', false, '2024-11-21 11:35:20');
+
+CREATE TABLE IF NOT EXISTS `feedback` (
+    `id_fb` int(11) NOT NULL AUTO_INCREMENT,
+    `uid` varchar(50) NOT NULL,
+    `question_1` int(11) NOT NULL,
+    `question_2` varchar(50) NOT NULL,
+    `question_3` int(11) NOT NULL,
+    `date` varchar(25) NOT NULL,
+    PRIMARY KEY (`id_fb`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

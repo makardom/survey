@@ -287,6 +287,7 @@ def sign_up():
 def logout():
     session.pop('loggedin', None)
     session.pop('isAdmin', None)
+    session.pop('id', None)
     return redirect(url_for('home'))
 
 @app.route('/back', methods=['GET'])
@@ -425,6 +426,48 @@ def admin():
 def survey():
     session['prev_page'] = 'survey'
     return render_template('survey.html')
+
+@app.route('/submit-survey', methods=['POST'])
+def submit_survey():
+    if not request.is_json:
+        return jsonify({"error": "Invalid request format"}), 400
+    
+    data = request.get_json()
+    uid = session.get('id', 0)  # 0 для неавторизованных пользователей
+    current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        if 'loggedin' in session:
+            # Для авторизованных пользователей - обновляем существующую запись или создаем новую
+            cursor.execute('''
+                INSERT INTO feedback 
+                (uid, question_1, question_2, question_3, date)
+                VALUES (%s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                question_1 = VALUES(question_1),
+                question_2 = VALUES(question_2),
+                question_3 = VALUES(question_3),
+                date = VALUES(date) 
+            ''', (uid, data['question1'], data['question2'], data['question3'], current_datetime))
+        else:
+            # Для неавторизованных - всегда создаем новую запись
+            cursor.execute('''
+                INSERT INTO feedback 
+                (uid, question_1, question_2, question_3, date)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (uid, data['question1'], data['question2'], data['question3'], current_datetime))
+        
+        mysql.connection.commit()
+        return jsonify({"message": "Survey submitted successfully"}), 200
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        app.logger.error(f"Error saving survey results: {e}")
+        return jsonify({"error": "Failed to save survey results"}), 500
+    finally:
+        cursor.close()
 
 def run_flask():
     app.run(debug=True, port=80, host='0.0.0.0')

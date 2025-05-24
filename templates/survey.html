@@ -164,12 +164,34 @@ document.querySelectorAll('.scale-slider').forEach(slider => {
 document.getElementById('feedback-form').addEventListener('submit', function(e) {
     e.preventDefault();
     // Здесь можно добавить код для отправки данных на сервер
-    alert('Спасибо за ваш отзыв!');
-    this.reset();
-    // Сброс значений ползунков
-    document.querySelectorAll('.scale-slider').forEach(slider => {
-        slider.value = 5;
-        slider.nextElementSibling.textContent = '5';
+    // Собираем данные формы
+    const formData = {
+        question1: document.querySelector('input[name="question1"]').value,
+        question2: document.querySelector('input[name="question2"]:checked')?.value || '',
+        question3: document.querySelector('input[name="question3"]').value
+    };
+
+    // Отправляем данные на сервер
+    fetch('/submit-survey', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Спасибо за ваш отзыв!');
+        this.reset();
+        // Сброс значений ползунков
+        document.querySelectorAll('.scale-slider').forEach(slider => {
+            slider.value = 5;
+            slider.nextElementSibling.textContent = '5';
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при отправке формы');
     });
 }); 
     </script>
