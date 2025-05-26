@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `form` (
     `username` varchar(50) NOT NULL,
     `password` varchar(255) NOT NULL,
     `isAdmin` boolean NOT NULL,
-    `registration_date` varchar(25) NOT NULL,
+    `registration_date` timestamp/*varchar(25)*/ NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -100,7 +100,7 @@ VALUES
 ('user17@gmail.com', '6f4922f45568161a8cdf4ad2299f6d23', false, '2024-11-28 22:05:05'),
 ('user18@gmail.com', '1f0e3dad99908345f7439f8ffabdffc4', false, '2024-11-29 23:15:10'),
 ('user19@gmail.com', '98f13708210194c475687be6106a3b84', false, '2024-11-30 09:25:15'),
-('user20@gmail.com', '3c59dc048e8850243be8079a5c74d079', false, '2024-11-21 11:35:20');
+('user20@gmail.com', '3c59dc048e8850243be8079a5c74d079', false, '2024-11-21 11:35:21');
 
 CREATE TABLE IF NOT EXISTS `feedback` (
     `id_fb` int(11) NOT NULL AUTO_INCREMENT,
