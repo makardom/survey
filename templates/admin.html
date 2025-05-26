@@ -127,6 +127,38 @@
         </main>
         </section>
 
+        <!-- Новый блок с результатами опросника-->
+        <section class="feedback-section" style="margin: 40px 0;">
+            <div class="container">
+                <h2>Оценка работы сервиса</h2>
+                <div class="feedback-metrics">
+                    <p><strong>Понятны ли вопросы пользователю?</strong></p>
+                    <p>Средняя оценка: {{ average_rating|round(2) if average_rating is not none else "Нет данных" }}</p>
+                    
+                    {% if suitable_stats %}
+                    <p><strong>Пользователи, которым банкротство подходит ответили:</strong></p>
+                    <p>1 Пользователям понятен порядок подачи заявления:
+                        Да: {{ suitable_stats.q2_yes|round(1) }}% 
+                        Нет: {{ suitable_stats.q2_no|round(1) }}%
+                    </p>
+                    <p>2 Удовлетворяет ли пользователя полученный результат:
+                        Да: {{ suitable_stats.q3_yes|round(1) }}% 
+                        Нет: {{ suitable_stats.q3_no|round(1) }}%
+                    </p>
+                    {% endif %}
+                    
+                    {% if not_suitable_stats %}
+                    <p><strong>Пользователи, которым банкротство не подходит ответили:</strong></p>
+                    <p>1 Удовлетворяет ли пользователя полученный результат:
+                        Да: {{ not_suitable_stats.q3_yes|round(1) }}% 
+                        Нет: {{ not_suitable_stats.q3_no|round(1) }}%
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        <!-- Новый блок с результатами опросника-->
+
         <footer class="small__section" id="contacts">
             <div class="container">
                 <div class="small__inner">

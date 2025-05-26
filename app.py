@@ -397,6 +397,31 @@ class Form(db.Model):
     password = db.Column(db.String(255), nullable=False)
     isAdmin = db.Column(db.Boolean, nullable=False)
 
+# @app.route('/admin')
+# def admin():
+#     if 'isAdmin' in session and session['isAdmin'] == 1:
+#         session['prev_page'] = 'admin'
+#         page = request.args.get('page', 1, type=int)
+#         per_page = 10
+        
+#         pagination = Form.query.paginate(
+#             page=page,
+#             per_page=per_page,
+#             error_out=False
+#         )
+        
+#         items = pagination.items
+
+#         return render_template('admin.html',
+#                              items=items,
+#                              pagination=pagination)
+#     else:
+#         flash("У вас нет доступа к этой странице.")  # Сообщение об ошибке
+#         prev_page = session.get('prev_page', None)
+#         if prev_page and prev_page != 'admin':
+#             return redirect(url_for(prev_page))
+#         return redirect(url_for('home'))
+
 @app.route('/admin')
 def admin():
     if 'isAdmin' in session and session['isAdmin'] == 1:
@@ -411,17 +436,109 @@ def admin():
         )
         
         items = pagination.items
+        average_rating = None
+        suitable_stats = None
+        not_suitable_stats = None
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute("SHOW TABLES LIKE 'feedback'")
+            if cursor.fetchone():
+                # Расчет средней оценки по вопросу 1
+                query = """
+                    SELECT 
+                        (SUM(anon_ratings.anon_sum) + SUM(user_ratings.user_sum)) / 
+                        (COUNT(anon_ratings.anon_sum) + COUNT(user_ratings.user_sum)) AS average_rating
+                    FROM 
+                        (SELECT question_1 AS anon_sum FROM feedback WHERE uid = '0') AS anon_ratings,
+                        (SELECT MAX(f1.question_1) AS user_sum 
+                         FROM feedback f1 
+                         WHERE f1.uid != '0' 
+                         AND f1.date = (SELECT MAX(f2.date) FROM feedback f2 WHERE f2.uid = f1.uid)
+                         GROUP BY f1.uid) AS user_ratings
+                """
+                cursor.execute(query)
+                result = cursor.fetchone()
+                average_rating = result['average_rating'] if result else None
+
+                # Расчет статистики для пользователей, которым подходит банкротство
+                query_suitable = """
+                    SELECT 
+                        SUM(CASE WHEN q2 = 'Да' THEN 1 ELSE 0 END) AS q2_yes,
+                        SUM(CASE WHEN q2 = 'Да' THEN 0 ELSE 1 END) AS q2_no,
+                        SUM(CASE WHEN q3 = 1 THEN 1 ELSE 0 END) AS q3_yes,
+                        SUM(CASE WHEN q3 = 1 THEN 0 ELSE 1 END) AS q3_no,
+                        COUNT(*) AS total
+                    FROM (
+                        SELECT 
+                            f1.question_2 AS q2, 
+                            f1.question_3 AS q3
+                        FROM feedback f1
+                        WHERE f1.question_2 = 'Да'
+                        AND (f1.uid = '0' OR f1.date = (
+                            SELECT MAX(f2.date) 
+                            FROM feedback f2 
+                            WHERE f2.uid = f1.uid
+                        ))
+                    ) AS filtered_data
+                """
+                cursor.execute(query_suitable)
+                suitable_result = cursor.fetchone()
+                
+                if suitable_result and suitable_result['total'] > 0:
+                    suitable_stats = {
+                        'q2_yes': (suitable_result['q2_yes'] / suitable_result['total']) * 100,
+                        'q2_no': (suitable_result['q2_no'] / suitable_result['total']) * 100,
+                        'q3_yes': (suitable_result['q3_yes'] / suitable_result['total']) * 100,
+                        'q3_no': (suitable_result['q3_no'] / suitable_result['total']) * 100
+                    }
+
+                # Расчет статистики для пользователей, которым НЕ подходит банкротство
+                query_not_suitable = """
+                    SELECT 
+                        SUM(CASE WHEN q3 = 1 THEN 1 ELSE 0 END) AS q3_yes,
+                        SUM(CASE WHEN q3 = 1 THEN 0 ELSE 1 END) AS q3_no,
+                        COUNT(*) AS total
+                    FROM (
+                        SELECT 
+                            f1.question_3 AS q3
+                        FROM feedback f1
+                        WHERE f1.question_2 = 'Банкротство не подходит'
+                        AND (f1.uid = '0' OR f1.date = (
+                            SELECT MAX(f2.date) 
+                            FROM feedback f2 
+                            WHERE f2.uid = f1.uid
+                        ))
+                    ) AS filtered_data
+                """
+                cursor.execute(query_not_suitable)
+                not_suitable_result = cursor.fetchone()
+                
+                if not_suitable_result and not_suitable_result['total'] > 0:
+                    not_suitable_stats = {
+                        'q3_yes': (not_suitable_result['q3_yes'] / not_suitable_result['total']) * 100,
+                        'q3_no': (not_suitable_result['q3_no'] / not_suitable_result['total']) * 100
+                    }
+
+        except Exception as e:
+            print(f"Ошибка при получении данных feedback: {e}")
+            average_rating = None
+            suitable_stats = None
+            not_suitable_stats = None
 
         return render_template('admin.html',
-                             items=items,
-                             pagination=pagination)
+                            items=items,
+                            pagination=pagination,
+                            average_rating=average_rating,
+                            suitable_stats=suitable_stats,
+                            not_suitable_stats=not_suitable_stats)
     else:
-        flash("У вас нет доступа к этой странице.")  # Сообщение об ошибке
+        flash("У вас нет доступа к этой странице.")
         prev_page = session.get('prev_page', None)
         if prev_page and prev_page != 'admin':
             return redirect(url_for(prev_page))
         return redirect(url_for('home'))
-
+    
 @app.route('/survey')
 def survey():
     session['prev_page'] = 'survey'
